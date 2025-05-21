@@ -1,0 +1,65 @@
+#此工作流将构建一个Java项目，并在提交到默认分支时将其部署到Windows或Linux上的Azure Functions应用程序。
+#
+#此工作流假设您已经创建了目标Azure函数应用程序。
+#有关说明,请参见https://learn。微软。com/en-us/azure/azure-functions/create-first-function-vs-code-Java
+#
+#要配置此工作流:
+# 1.在存储库中设置以下机密:
+#-AZURE _ function app _ PUBLISH _ PROFILE
+# 2.为您的配置更改环境变量。
+#
+#有关以下内容的更多信息:
+# - GitHub为蔚蓝的采取的行动:https://github . com/Azure/Actions
+#-Azure Functions操作:https://github . com/Azure/Functions-Action
+# -发布配置文件:https://github。com/Azure/functions-action #使用-Publish-Profile-as-deployment-credential-推荐
+#-RBAC的蔚蓝的服务主体:https://github。使用-Azure-Service-Principal-for-RBAC-as-deployment-credential
+#
+#有关部署到蔚蓝的的开源代码库操作工作流的更多示例,请访问:https://GitHub。com/Azure/actions-工作流-示例/树/主/函数应用程序
+
+名字: 名称:将Java项目部署到Azure Function App
+
+在:
+推:
+分支: ["主要"]
+
+包封/包围（动词envelop的简写）:
+AZURE_FUNCTIONAPP_NAME: '您的应用程序名称'AZURE _ function app _ NAME:'您的应用程序名称' #将此设置为蔚蓝的上的功能应用名称#在Azure上将此设置为您的功能应用名称
+POM XML目录: '.'POM_XML_DIRECTORY:“.”#将此设置为包含pom.xml文件的目录# set this to the directory which contains pom.xml file
+分布: 祖鲁语分发:'祖鲁' #将此设置为要使用的Java语言（一种计算机语言，尤用于创建网站）版本（例如,'祖鲁','特穆林','微软)#将其设置为要使用的java版本(例如，“祖鲁”、“特穆林”、“微软”)
+JAVA_VERSION: '8'JAVA_VERSION: '8' #将此设置为要使用的Java语言（一种计算机语言，尤用于创建网站）版本（例如，' 8 '，' 11 '，' 17 ')#将此设置为要使用的java版本(例如' 8 '，' 11 '，' 17 ')
+
+工作:
+构建和部署:
+连续运行: 运行:windows-latest #对于Linux，使用ubuntu-latest#对于Linux，请使用ubuntu-latest
+环境: 环境:发展
+步伐:
+    - 名字: '签出GitHub操作'
+使用: 用途:动作/结帐@v4
+
+#如果要使用蔚蓝RBAC而不是发布配置文件,请取消对下面任务的注释#如果要使用Azure RBAC而不是发布配置文件，请取消对下面任务的注释
+# -名称:"通过Azure CLI登录" # -名称:'通过Azure CLI登录'
+#使用:azure/login@v1#用途:azure/login@v1
+#与:#带有:
+# creds: ${{ secrets .RBAC蔚蓝色凭据}} #在您的存储库中设置RBAC蔚蓝色凭据机密# creds: ${{ secrets。AZURE _ RBAC _凭据}} #在您的存储库中设置AZURE _ RBAC _凭据机密
+
+    - 名字: - name: Setup Java Sdk ${{ env。JAVA_VERSION }}{{ env.JAVA_VERSION }}
+使用: 用法:操作/设置-java@v4
+随着:
+分布: 发行版:${{ env。分发}}{{ env.DISTRIBUTION }}
+java版本: java版本:${{ env。JAVA_VERSION }}{{ env.JAVA_VERSION }}
+
+    - 名字: '使用Mvn还原项目依赖项'
+壳: shell: pwsh #对于Linux，使用bash#对于Linux，使用bash
+奔跑: |
+pushd。/${{ env。POM_XML_DIRECTORY }} '
+mvn清洁包装
+popd
+
+    - 名字: 运行Azure函数操作
+使用: 用途:Azure/functions-action@v1
+身份证明（identification）: id: fa
+随着:
+应用程序名称: 应用程序名称:${{ env。AZURE_FUNCTIONAPP_NAME }}{{ env.AZURE_FUNCTIONAPP_NAME }}
+包裹: ${{ env .POM_XML_DIRECTORY }} '包:“${{ env .POM_XML_DIRECTORY }}' #如果同一个项目中有多个函数app，那么这个路径就像'。/${{ env。POM _ XML _ DIRECTORY } }/target/azure-functions/$ { { env。' POM_FUNCTIONAPP_NAME } '# if there are multiple function apps in same project, then this path will be like './${{ env.POM_XML_DIRECTORY }}/target/azure-functions/${{ env.POM_FUNCTIONAPP_NAME }'
+发布配置文件: 发布个人资料:${{ secrets。AZURE _ function app _ PUBLISH _ PROFILE } } #删除发布配置文件以使用蔚蓝RBAC
+尊重-pom-xml: 真实的
